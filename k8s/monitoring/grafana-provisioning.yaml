@@ -1,0 +1,105 @@
+# Grafana is configured entirely from files: the Prometheus data source and the
+# Lab 8 dashboard are loaded at startup, so a new Grafana Pod comes back identical.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-provisioning
+  labels:
+    app: grafana
+    part-of: lab8
+data:
+  datasource.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        uid: prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus:9090
+        isDefault: true
+        jsonData:
+          timeInterval: 5s
+
+  dashboards.yaml: |
+    apiVersion: 1
+    providers:
+      - name: lab8
+        folder: Lab 8
+        type: file
+        allowUiUpdates: true
+        options:
+          path: /var/lib/grafana/dashboards
+
+  lab8.json: |
+    {
+      "uid": "lab8-microservices",
+      "title": "Lab 8 - Microservices",
+      "tags": ["lab8"],
+      "timezone": "browser",
+      "schemaVersion": 39,
+      "refresh": "5s",
+      "time": { "from": "now-15m", "to": "now" },
+      "panels": [
+        {
+          "id": 1,
+          "type": "timeseries",
+          "title": "Are targets reachable? (Pods UP per service)",
+          "description": "Number of Pods per service that Prometheus scraped successfully. Scaling user-service to 3 shows 3; a deleted Pod dips and recovers.",
+          "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": { "unit": "none", "decimals": 0, "min": 0, "custom": { "lineInterpolation": "stepAfter" } },
+            "overrides": []
+          },
+          "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "targets": [
+            { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "sum by (app) (up{job=\"lab8-pods\"})", "legendFormat": "{{app}}" }
+          ]
+        },
+        {
+          "id": 2,
+          "type": "timeseries",
+          "title": "How much traffic is arriving? (requests/s per service)",
+          "description": "Request rate seen by each service. Gateway traffic fans out to the services behind it.",
+          "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": { "defaults": { "unit": "reqps", "min": 0 }, "overrides": [] },
+          "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "targets": [
+            { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "sum by (app) (rate(http_request_duration_seconds_count{job=\"lab8-pods\"}[1m]))", "legendFormat": "{{app}}" }
+          ]
+        },
+        {
+          "id": 3,
+          "type": "timeseries",
+          "title": "Are failures increasing? (4xx/5xx responses/s)",
+          "description": "Error responses per service and status code. 404s come from invalid requests; 503s from the gateway mean a service is unreachable.",
+          "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": { "defaults": { "unit": "reqps", "min": 0 }, "overrides": [] },
+          "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "targets": [
+            { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "sum by (app, status_code) (rate(http_request_duration_seconds_count{job=\"lab8-pods\", status_code=~\"4..|5..\"}[1m]))",
+              "legendFormat": "{{app}} {{status_code}}" }
+          ]
+        },
+        {
+          "id": 4,
+          "type": "timeseries",
+          "title": "How long are requests taking? (p95 latency)",
+          "description": "95th percentile request duration per service, from the http_request_duration_seconds histogram.",
+          "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": { "defaults": { "unit": "s", "min": 0 }, "overrides": [] },
+          "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+          "targets": [
+            { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "histogram_quantile(0.95, sum by (le, app) (rate(http_request_duration_seconds_bucket{job=\"lab8-pods\"}[1m])))",
+              "legendFormat": "{{app}}" }
+          ]
+        }
+      ]
+    }

@@ -1,0 +1,9 @@
+node_modules/
+dist/
+build/
+.env
+.env.local
+# Atlas URIs used to create the Kubernetes Secret.
+k8s/mongo.env
+*.log
+.DS_Store

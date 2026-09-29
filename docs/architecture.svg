@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 740" width="960" height="740" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#334155"/>
+    </marker>
+    <marker id="arrow-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#c2410c"/>
+    </marker>
+  </defs>
+  <rect width="960" height="740" fill="#ffffff"/>
+  <text x="480" y="32" text-anchor="middle" font-size="20" font-weight="700" fill="#0f172a">Lab 8 - Kubernetes, Basic CI &amp; Monitoring</text>
+
+  <!-- Client -->
+  <rect x="360" y="50" width="240" height="50" rx="8" fill="#f1f5f9" stroke="#334155"/>
+  <text x="480" y="72" text-anchor="middle" font-size="15" font-weight="600" fill="#0f172a">Client / Postman</text>
+  <text x="480" y="90" text-anchor="middle" font-size="12" fill="#475569">http://localhost:30080</text>
+  <line x1="480" y1="100" x2="480" y2="183" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="490" y="140" font-size="12" fill="#475569">NodePort 30080 - the only externally exposed Service</text>
+
+  <!-- Cluster -->
+  <rect x="20" y="118" width="920" height="500" rx="10" fill="none" stroke="#64748b" stroke-width="1.5" stroke-dasharray="7 5"/>
+  <text x="36" y="140" font-size="13" font-weight="600" fill="#334155">Kubernetes cluster: docker-desktop (kubeadm)</text>
+  <text x="36" y="158" font-size="12" fill="#475569">namespace lab8</text>
+
+  <!-- Gateway -->
+  <rect x="290" y="185" width="380" height="78" rx="8" fill="#dbeafe" stroke="#1d4ed8" stroke-width="2"/>
+  <text x="480" y="207" text-anchor="middle" font-size="15" font-weight="700" fill="#1e3a8a">api-gateway</text>
+  <text x="480" y="226" text-anchor="middle" font-size="12" fill="#1e3a8a">Service (NodePort 30080 -&gt; 8080) + Deployment (1 Pod)</text>
+  <text x="480" y="244" text-anchor="middle" font-size="12" fill="#1e3a8a">/users  /products  /orders  -&gt;  Service names, never Pod IPs</text>
+
+  <line x1="360" y1="263" x2="170" y2="318" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="480" y1="263" x2="480" y2="318" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="600" y1="263" x2="790" y2="318" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="200" y="290" font-size="11" fill="#475569">http://user-service:3001</text>
+  <text x="488" y="296" font-size="11" fill="#475569">http://product-service:3002</text>
+  <text x="690" y="290" font-size="11" fill="#475569">http://order-service:3003</text>
+
+  <!-- User Service -->
+  <rect x="45" y="320" width="250" height="140" rx="8" fill="#dcfce7" stroke="#15803d" stroke-width="2"/>
+  <text x="170" y="342" text-anchor="middle" font-size="15" font-weight="700" fill="#14532d">user-service</text>
+  <text x="170" y="360" text-anchor="middle" font-size="12" fill="#14532d">Service ClusterIP :3001</text>
+  <text x="170" y="378" text-anchor="middle" font-size="12" fill="#14532d">Deployment scaled to 3 replicas</text>
+  <rect x="62" y="392" width="68" height="46" rx="5" fill="#ffffff" stroke="#15803d"/>
+  <text x="96" y="420" text-anchor="middle" font-size="12" fill="#14532d">Pod</text>
+  <rect x="136" y="392" width="68" height="46" rx="5" fill="#ffffff" stroke="#15803d"/>
+  <text x="170" y="420" text-anchor="middle" font-size="12" fill="#14532d">Pod</text>
+  <rect x="210" y="392" width="68" height="46" rx="5" fill="#ffffff" stroke="#15803d"/>
+  <text x="244" y="420" text-anchor="middle" font-size="12" fill="#14532d">Pod</text>
+
+  <!-- Product Service -->
+  <rect x="355" y="320" width="250" height="140" rx="8" fill="#dcfce7" stroke="#15803d" stroke-width="2"/>
+  <text x="480" y="342" text-anchor="middle" font-size="15" font-weight="700" fill="#14532d">product-service</text>
+  <text x="480" y="360" text-anchor="middle" font-size="12" fill="#14532d">Service ClusterIP :3002</text>
+  <text x="480" y="378" text-anchor="middle" font-size="12" fill="#14532d">Deployment, 1 replica</text>
+  <rect x="446" y="392" width="68" height="46" rx="5" fill="#ffffff" stroke="#15803d"/>
+  <text x="480" y="420" text-anchor="middle" font-size="12" fill="#14532d">Pod</text>
+
+  <!-- Order Service -->
+  <rect x="665" y="320" width="250" height="140" rx="8" fill="#dcfce7" stroke="#15803d" stroke-width="2"/>
+  <text x="790" y="342" text-anchor="middle" font-size="15" font-weight="700" fill="#14532d">order-service</text>
+  <text x="790" y="360" text-anchor="middle" font-size="12" fill="#14532d">Service ClusterIP :3003</text>
+  <text x="790" y="378" text-anchor="middle" font-size="12" fill="#14532d">Deployment, 1 replica</text>
+  <rect x="756" y="392" width="68" height="46" rx="5" fill="#ffffff" stroke="#15803d"/>
+  <text x="790" y="420" text-anchor="middle" font-size="12" fill="#14532d">Pod</text>
+
+  <!-- Order -> User / Product -->
+  <line x1="665" y1="410" x2="607" y2="410" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M 700 460 L 700 478 L 170 478 L 170 462" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="495" y="474" text-anchor="middle" font-size="11" fill="#475569">Order Service calls User and Product Service by Service name</text>
+
+  <!-- Config -->
+  <rect x="45" y="500" width="250" height="98" rx="8" fill="#fef9c3" stroke="#a16207" stroke-width="1.5"/>
+  <text x="170" y="522" text-anchor="middle" font-size="14" font-weight="700" fill="#713f12">Configuration</text>
+  <text x="170" y="542" text-anchor="middle" font-size="12" fill="#713f12">ConfigMap lab8-config: ports,</text>
+  <text x="170" y="558" text-anchor="middle" font-size="12" fill="#713f12">*_SERVICE_URL, timeouts</text>
+  <text x="170" y="578" text-anchor="middle" font-size="12" fill="#713f12">Secret lab8-mongo: Atlas URIs</text>
+
+  <!-- Prometheus -->
+  <rect x="355" y="500" width="250" height="98" rx="8" fill="#ffedd5" stroke="#c2410c" stroke-width="1.5"/>
+  <text x="480" y="522" text-anchor="middle" font-size="14" font-weight="700" fill="#7c2d12">Prometheus (ClusterIP :9090)</text>
+  <text x="480" y="542" text-anchor="middle" font-size="12" fill="#7c2d12">kubernetes_sd: scrapes /metrics of</text>
+  <text x="480" y="558" text-anchor="middle" font-size="12" fill="#7c2d12">every annotated Pod every 5s</text>
+  <text x="480" y="578" text-anchor="middle" font-size="12" fill="#7c2d12">up, http_request_duration_seconds</text>
+  <line x1="530" y1="500" x2="530" y2="440" stroke="#c2410c" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrow-orange)"/>
+  <text x="536" y="494" font-size="11" fill="#c2410c">scrape</text>
+
+  <!-- Grafana -->
+  <rect x="665" y="500" width="250" height="98" rx="8" fill="#ffedd5" stroke="#c2410c" stroke-width="1.5"/>
+  <text x="790" y="522" text-anchor="middle" font-size="14" font-weight="700" fill="#7c2d12">Grafana (ClusterIP :3000)</text>
+  <text x="790" y="542" text-anchor="middle" font-size="12" fill="#7c2d12">"Lab 8 - Microservices" dashboard:</text>
+  <text x="790" y="558" text-anchor="middle" font-size="12" fill="#7c2d12">availability, traffic, errors, p95</text>
+  <text x="790" y="578" text-anchor="middle" font-size="12" fill="#7c2d12">opened via kubectl port-forward</text>
+  <line x1="665" y1="549" x2="607" y2="549" stroke="#c2410c" stroke-width="1.5" marker-end="url(#arrow-orange)"/>
+
+  <!-- Atlas -->
+  <path d="M 325 460 L 325 648" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="40" y="650" width="480" height="62" rx="8" fill="#f0fdf4" stroke="#15803d" stroke-width="1.5"/>
+  <text x="280" y="676" text-anchor="middle" font-size="15" font-weight="700" fill="#14532d">MongoDB Atlas (outside the cluster)</text>
+  <text x="280" y="696" text-anchor="middle" font-size="12" fill="#14532d">userdb · productdb · orderdb - one database per service</text>
+
+  <!-- CI -->
+  <rect x="560" y="650" width="380" height="62" rx="8" fill="#f1f5f9" stroke="#334155" stroke-width="1.5"/>
+  <text x="750" y="676" text-anchor="middle" font-size="15" font-weight="700" fill="#0f172a">GitHub Actions CI (.github/workflows/ci.yml)</text>
+  <text x="750" y="696" text-anchor="middle" font-size="12" fill="#475569">push / PR -&gt; checkout -&gt; npm ci -&gt; npm test -&gt; docker build (x4)</text>
+</svg>

@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  labels:
+    app: api-gateway
+    part-of: lab8
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+        part-of: lab8
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: /metrics
+    spec:
+      # The apps read *_SERVICE_URL from the ConfigMap; skip the legacy Docker-link env vars.
+      enableServiceLinks: false
+      containers:
+        - name: api-gateway
+          image: api-gateway:v2
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: PORT
+              valueFrom:
+                configMapKeyRef: { name: lab8-config, key: GATEWAY_PORT }
+            - name: USER_SERVICE_URL
+              valueFrom:
+                configMapKeyRef: { name: lab8-config, key: USER_SERVICE_URL }
+            - name: PRODUCT_SERVICE_URL
+              valueFrom:
+                configMapKeyRef: { name: lab8-config, key: PRODUCT_SERVICE_URL }
+            - name: ORDER_SERVICE_URL
+              valueFrom:
+                configMapKeyRef: { name: lab8-config, key: ORDER_SERVICE_URL }
+            - name: PROXY_TIMEOUT_MS
+              valueFrom:
+                configMapKeyRef: { name: lab8-config, key: PROXY_TIMEOUT_MS }
+          readinessProbe:
+            httpGet: { path: /health, port: http }
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /health, port: http }
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          resources:
+            requests: { cpu: 50m, memory: 96Mi }
+            limits: { cpu: 500m, memory: 256Mi }

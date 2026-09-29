@@ -1,0 +1,91 @@
+===== BEFORE traffic (09:44:56)
+$ promql: sum by (app) (up{job="lab8-pods"})
+  {app="product-service"}  1.000
+  {app="user-service"}  3.000
+  {app="api-gateway"}  1.000
+  {app="order-service"}  1.000
+
+$ promql: sum by (app) (http_request_duration_seconds_count{job="lab8-pods"})
+  {app="product-service"}  11.000
+  {app="user-service"}  18.000
+  {app="api-gateway"}  32.000
+  {app="order-service"}  5.000
+
+$ promql: sum by (app) (rate(http_request_duration_seconds_count{job="lab8-pods"}[1m]))
+  {app="product-service"}  0.000
+  {app="user-service"}  0.000
+  {app="api-gateway"}  0.000
+  {app="order-service"}  0.000
+
+$ promql: sum by (app, status_code) (http_request_duration_seconds_count{job="lab8-pods", status_code=~"4..|5.."})
+  {app="product-service", status_code="404"}  1.000
+  {app="user-service", status_code="404"}  3.000
+  {app="api-gateway", status_code="404"}  5.000
+  {app="order-service", status_code="404"}  1.000
+
+$ promql: histogram_quantile(0.95, sum by (le, app) (rate(http_request_duration_seconds_bucket{job="lab8-pods"}[1m])))
+  {app="user-service"}  NaN
+  {app="api-gateway"}  NaN
+  {app="order-service"}  NaN
+  {app="product-service"}  NaN
+
+===== AFTER normal traffic: newman x10 (240 requests) + 80 GETs (09:46:09)
+$ promql: sum by (app) (up{job="lab8-pods"})
+  {app="product-service"}  1.000
+  {app="user-service"}  3.000
+  {app="api-gateway"}  1.000
+  {app="order-service"}  1.000
+
+$ promql: sum by (app) (http_request_duration_seconds_count{job="lab8-pods"})
+  {app="product-service"}  161.000
+  {app="user-service"}  168.000
+  {app="api-gateway"}  332.000
+  {app="order-service"}  55.000
+
+$ promql: sum by (app) (rate(http_request_duration_seconds_count{job="lab8-pods"}[1m]))
+  {app="product-service"}  2.600
+  {app="user-service"}  2.435
+  {app="api-gateway"}  5.073
+  {app="order-service"}  0.727
+
+$ promql: sum by (app, status_code) (http_request_duration_seconds_count{job="lab8-pods", status_code=~"4..|5.."})
+  {app="product-service", status_code="404"}  11.000
+  {app="user-service", status_code="404"}  33.000
+  {app="api-gateway", status_code="404"}  55.000
+  {app="order-service", status_code="404"}  11.000
+
+$ promql: histogram_quantile(0.95, sum by (le, app) (rate(http_request_duration_seconds_bucket{job="lab8-pods"}[1m])))
+  {app="product-service"}  0.225
+  {app="user-service"}  0.100
+  {app="api-gateway"}  0.229
+  {app="order-service"}  0.288
+
+===== DURING failure: product-service scaled to 0, 31 x GET /products (09:46:45)
+$ promql: sum by (app) (up{job="lab8-pods"})
+  {app="user-service"}  3.000
+  {app="api-gateway"}  1.000
+  {app="order-service"}  1.000
+
+$ promql: sum by (app) (http_request_duration_seconds_count{job="lab8-pods"})
+  {app="user-service"}  168.000
+  {app="api-gateway"}  363.000
+  {app="order-service"}  55.000
+
+$ promql: sum by (app) (rate(http_request_duration_seconds_count{job="lab8-pods"}[1m]))
+  {app="product-service"}  0.202
+  {app="user-service"}  0.382
+  {app="api-gateway"}  1.413
+  {app="order-service"}  0.000
+
+$ promql: sum by (app, status_code) (http_request_duration_seconds_count{job="lab8-pods", status_code=~"4..|5.."})
+  {app="user-service", status_code="404"}  33.000
+  {app="api-gateway", status_code="404"}  55.000
+  {app="order-service", status_code="404"}  11.000
+  {app="api-gateway", status_code="503"}  31.000
+
+$ promql: histogram_quantile(0.95, sum by (le, app) (rate(http_request_duration_seconds_bucket{job="lab8-pods"}[1m])))
+  {app="product-service"}  0.097
+  {app="user-service"}  0.095
+  {app="api-gateway"}  1.301
+  {app="order-service"}  NaN
+

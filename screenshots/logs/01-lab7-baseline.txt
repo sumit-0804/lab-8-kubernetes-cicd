@@ -1,0 +1,158 @@
+$ docker compose ps   (lab7)
+NAME                                   IMAGE                                                                     STATUS                    PORTS
+campusconnect-lab7-api-gateway-1       sha256:eef3a5e487ace9e73d830f7e5964e9a1d46f8ceb331b55cfebae2c359ebace14   Up 18 seconds (healthy)   0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp
+campusconnect-lab7-order-service-1     order-service:v1                                                          Up 19 seconds (healthy)   3003/tcp
+campusconnect-lab7-product-service-1   product-service:v1                                                        Up 19 seconds (healthy)   3002/tcp
+campusconnect-lab7-user-service-1      user-service:v1                                                           Up 19 seconds (healthy)   3001/tcp
+
+$ curl http://localhost:8080/health/services
+{"service":"api-gateway","services":[{"service":"user-service","reachable":true,"status":200,"health":{"status":"ok","service":"user-service","port":3001,"db":"connected"}},{"service":"product-service","reachable":true,"status":200,"health":{"status":"ok","service":"product-service","port":3002,"db":"connected"}},{"service":"order-service","reachable":true,"status":200,"health":{"status":"ok","service":"order-service","port":3003,"db":"connected","dependencies":{"userService":"http://user-service:3001","productService":"http://product-service:3002"}}}]}
+
+$ npx newman run postman/API-Gateway-Lab7.postman_collection.json -e postman/Lab7-Local.postman_environment.json
+newman
+
+API Gateway - Lab 7
+
+Folder 1. Gateway
+Sub-folder 01 GET /health (gateway itself)
+  GET http://localhost:8080/health [200 OK, 425B, 21ms]
+  Pass  200 OK
+  Pass  answered by the gateway, not proxied
+  Pass  three routes registered
+
+Sub-folder 02 GET /health/services (registry check)
+  GET http://localhost:8080/health/services [200 OK, 773B, 8ms]
+  Pass  200 OK - every registered service answered
+  Pass  checks all three services
+  Pass  each service has a connected database
+
+Sub-folder 03 GET /unknown -> 404 from gateway
+  GET http://localhost:8080/unknown [404 Not Found, 315B, 6ms]
+  Pass  404 Not Found
+  Pass  answered by the gateway
+
+Folder 2. Users via gateway
+Sub-folder 04 GET /users
+  GET http://localhost:8080/users [200 OK, 866B, 51ms]
+  Pass  200 OK
+  Pass  body is an array
+
+Sub-folder 05 POST /users
+  POST http://localhost:8080/users [201 Created, 433B, 59ms]
+  Pass  201 Created
+  Pass  Location header passed through the gateway
+
+Sub-folder 06 GET /users/{id}
+  GET http://localhost:8080/users/6abb3878d19e7fe5792aad93 [200 OK, 385B, 51ms]
+  Pass  200 OK
+  Pass  same record
+
+Sub-folder 07 PUT /users/{id}
+  PUT http://localhost:8080/users/6abb3878d19e7fe5792aad93 [200 OK, 395B, 44ms]
+  Pass  200 OK
+  Pass  semester replaced
+
+Sub-folder 08 GET /users/999 (invalid id -> 404)
+  GET http://localhost:8080/users/999 [404 Not Found, 350B, 7ms]
+  Pass  404 Not Found
+  Pass  answered by user-service through the gateway
+
+Folder 3. Products via gateway
+Sub-folder 09 GET /products
+  GET http://localhost:8080/products [200 OK, 770B, 47ms]
+  Pass  200 OK
+  Pass  body is an array
+
+Sub-folder 10 POST /products
+  POST http://localhost:8080/products [201 Created, 415B, 71ms]
+  Pass  201 Created
+
+Sub-folder 11 GET /products/{id}
+  GET http://localhost:8080/products/6abb38781f816c612b8db7e4 [200 OK, 364B, 39ms]
+  Pass  200 OK
+  Pass  same record
+
+Sub-folder 12 PUT /products/{id}
+  PUT http://localhost:8080/products/6abb38781f816c612b8db7e4 [200 OK, 371B, 68ms]
+  Pass  200 OK
+  Pass  price replaced
+
+Sub-folder 13 GET /products/999 (invalid id -> 404)
+  GET http://localhost:8080/products/999 [404 Not Found, 356B, 10ms]
+  Pass  404 Not Found
+  Pass  answered by product-service through the gateway
+
+Folder 4. Orders via gateway
+Sub-folder 14 POST /orders (gateway -> Order -> User + Product)
+  POST http://localhost:8080/orders [201 Created, 673B, 251ms]
+  Pass  201 Created
+  Pass  Order -> User call succeeded
+  Pass  Order -> Product call succeeded
+  Pass  price came from product-service
+
+Sub-folder 15 GET /orders
+  GET http://localhost:8080/orders [200 OK, 3.7kB, 69ms]
+  Pass  200 OK
+  Pass  contains the new order
+
+Sub-folder 16 GET /orders/{id}
+  GET http://localhost:8080/orders/6abb38797ed293e16e745347 [200 OK, 624B, 84ms]
+  Pass  200 OK
+  Pass  same order
+
+Sub-folder 17 GET /orders/{id}?expand=true
+  GET http://localhost:8080/orders/6abb38797ed293e16e745347?expand=true [200 OK, 929B, 159ms]
+  Pass  200 OK
+  Pass  user fetched live from user-service
+  Pass  product fetched live from product-service
+
+Sub-folder 18 GET /products/{id} (stock reduced by the order)
+  GET http://localhost:8080/products/6abb38781f816c612b8db7e4 [200 OK, 371B, 73ms]
+  Pass  200 OK
+  Pass  stock reserved through the API (expected 28)
+
+Sub-folder 19 POST /orders with unknown userId -> 404
+  POST http://localhost:8080/orders [404 Not Found, 451B, 55ms]
+  Pass  404 Not Found
+  Pass  answered by order-service through the gateway
+
+Folder 5. Deletes via gateway
+Sub-folder 20 POST /users (temporary)
+  POST http://localhost:8080/users [201 Created, 431B, 64ms]
+  Pass  201 Created
+
+Sub-folder 21 DELETE /users/{id}
+  DELETE http://localhost:8080/users/6abb387ad19e7fe5792aad9b [204 No Content, 138B, 28ms]
+  Pass  204 No Content
+
+Sub-folder 22 GET deleted user -> 404
+  GET http://localhost:8080/users/6abb387ad19e7fe5792aad9b [404 Not Found, 371B, 35ms]
+  Pass  404 Not Found
+
+Sub-folder 23 POST /products (temporary)
+  POST http://localhost:8080/products [201 Created, 406B, 47ms]
+  Pass  201 Created
+
+Sub-folder 24 DELETE /products/{id}
+  DELETE http://localhost:8080/products/6abb387a1f816c612b8db7ee [204 No Content, 138B, 43ms]
+  Pass  204 No Content
+
+------------------------------------------------------------------
+|                         |          executed |           failed |
+--------------------------+-------------------+-------------------
+|              iterations |                 1 |                0 |
+--------------------------+-------------------+-------------------
+|                requests |                24 |                0 |
+--------------------------+-------------------+-------------------
+|            test-scripts |                24 |                0 |
+--------------------------+-------------------+-------------------
+|      prerequest-scripts |                15 |                0 |
+--------------------------+-------------------+-------------------
+|              assertions |                47 |                0 |
+------------------------------------------------------------------
+| total run duration: 3.3s                                       |
+------------------------------------------------------------------
+| total data received: 8.68kB (approx)                           |
+------------------------------------------------------------------
+| average response time: 57ms [min: 6ms, max: 251ms, s.d.: 51ms] |
+------------------------------------------------------------------

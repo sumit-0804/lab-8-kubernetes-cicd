@@ -1,0 +1,48 @@
+$ kubectl apply -f k8s/ -n lab8
+configmap/lab8-config created
+deployment.apps/api-gateway created
+service/api-gateway created
+deployment.apps/order-service created
+service/order-service created
+deployment.apps/product-service created
+service/product-service created
+deployment.apps/user-service created
+service/user-service created
+
+$ kubectl rollout status deployment -n lab8 --timeout=180s
+Waiting for deployment "user-service" rollout to finish: 0 of 1 updated replicas are available...
+deployment "user-service" successfully rolled out
+Waiting for deployment "product-service" rollout to finish: 0 of 1 updated replicas are available...
+deployment "product-service" successfully rolled out
+deployment "order-service" successfully rolled out
+deployment "api-gateway" successfully rolled out
+
+$ kubectl get deployments -n lab8
+NAME              READY   UP-TO-DATE   AVAILABLE   AGE
+api-gateway       1/1     1            1           27s
+order-service     1/1     1            1           27s
+product-service   1/1     1            1           27s
+user-service      1/1     1            1           27s
+
+$ kubectl get pods -n lab8 -o wide
+NAME                              READY   STATUS    RESTARTS   AGE   IP         NODE             NOMINATED NODE   READINESS GATES
+api-gateway-779cc9764b-wwwwl      1/1     Running   0          27s   10.1.0.6   docker-desktop   <none>           <none>
+order-service-6f5c7bb88c-b4j9f    1/1     Running   0          27s   10.1.0.7   docker-desktop   <none>           <none>
+product-service-6475b4684-md4jw   1/1     Running   0          27s   10.1.0.8   docker-desktop   <none>           <none>
+user-service-64f5c9bcf8-n6b9f     1/1     Running   0          27s   10.1.0.9   docker-desktop   <none>           <none>
+
+$ kubectl get services -n lab8
+NAME              TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE
+api-gateway       NodePort    10.102.104.103   <none>        8080:30080/TCP   27s
+order-service     ClusterIP   10.96.190.207    <none>        3003/TCP         27s
+product-service   ClusterIP   10.104.78.153    <none>        3002/TCP         27s
+user-service      ClusterIP   10.97.190.102    <none>        3001/TCP         27s
+
+$ kubectl get configmap,secret -n lab8
+NAME                         DATA   AGE
+configmap/kube-root-ca.crt   1      35s
+configmap/lab8-config        10     28s
+
+NAME                   TYPE     DATA   AGE
+secret/grafana-admin   Opaque   1      34s
+secret/lab8-mongo      Opaque   3      34s

@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service
+  labels:
+    app: order-service
+    part-of: lab8
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: order-service
+  template:
+    metadata:
+      labels:
+        app: order-service
+        part-of: lab8
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3003"
+        prometheus.io/path: /metrics
+    spec:
+      enableServiceLinks: false
+      containers:
+        - name: order-service
+          image: order-service:v2
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 3003
+          env:
+            - name: PORT
+              valueFrom:
+                configMapKeyRef: { name: lab8-config, key: ORDER_SERVICE_PORT }
+            - name: MONGO_URI
+              valueFrom:
+                secretKeyRef: { name: lab8-mongo, key: ORDER_MONGO_URI }
+            # Order Service calls User and Product Service through their Service names.
+            - name: USER_SERVICE_URL
+              valueFrom:
+                configMapKeyRef: { name: lab8-config, key: USER_SERVICE_URL }
+            - name: PRODUCT_SERVICE_URL
+              valueFrom:
+                configMapKeyRef: { name: lab8-config, key: PRODUCT_SERVICE_URL }
+            - name: DEPENDENCY_TIMEOUT_MS
+              valueFrom:
+                configMapKeyRef: { name: lab8-config, key: DEPENDENCY_TIMEOUT_MS }
+            - name: DEPENDENCY_RETRIES
+              valueFrom:
+                configMapKeyRef: { name: lab8-config, key: DEPENDENCY_RETRIES }
+          readinessProbe:
+            httpGet: { path: /health, port: http }
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket: { port: http }
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          resources:
+            requests: { cpu: 50m, memory: 96Mi }
+            limits: { cpu: 500m, memory: 256Mi }

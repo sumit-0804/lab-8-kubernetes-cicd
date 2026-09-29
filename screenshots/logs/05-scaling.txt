@@ -1,0 +1,35 @@
+$ kubectl get deployment user-service -n lab8
+NAME           READY   UP-TO-DATE   AVAILABLE   AGE
+user-service   1/1     1            1           59s
+
+$ kubectl scale deployment user-service --replicas=3 -n lab8
+deployment.apps/user-service scaled
+Waiting for deployment "user-service" rollout to finish: 1 of 3 updated replicas are available...
+Waiting for deployment "user-service" rollout to finish: 2 of 3 updated replicas are available...
+deployment "user-service" successfully rolled out
+
+$ kubectl get deployment user-service -n lab8
+NAME           READY   UP-TO-DATE   AVAILABLE   AGE
+user-service   3/3     3            3           66s
+
+$ kubectl get pods -n lab8 -l app=user-service -o wide
+NAME                            READY   STATUS    RESTARTS   AGE   IP          NODE             NOMINATED NODE   READINESS GATES
+user-service-64f5c9bcf8-fkn62   1/1     Running   0          7s    10.1.0.10   docker-desktop   <none>           <none>
+user-service-64f5c9bcf8-mb2cj   1/1     Running   0          7s    10.1.0.11   docker-desktop   <none>           <none>
+user-service-64f5c9bcf8-n6b9f   1/1     Running   0          66s   10.1.0.9    docker-desktop   <none>           <none>
+
+$ kubectl get endpointslices -n lab8 -l kubernetes.io/service-name=user-service   (one Service, three Pod endpoints)
+NAME                 ADDRESSTYPE   PORTS   ENDPOINTS                      AGE
+user-service-4g5lx   IPv4          3001    10.1.0.9,10.1.0.10,10.1.0.11   66s
+
+$ kubectl get service user-service -n lab8   (same stable ClusterIP)
+NAME           TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
+user-service   ClusterIP   10.97.190.102   <none>        3001/TCP   66s
+
+$ for i in 1..9: curl http://localhost:30080/users
+200 200 200 200 200 200 200 200 200 
+
+# requests served per user-service Pod (load balanced by the Service):
+pod/user-service-64f5c9bcf8-fkn62: 3
+pod/user-service-64f5c9bcf8-mb2cj: 3
+pod/user-service-64f5c9bcf8-n6b9f: 4

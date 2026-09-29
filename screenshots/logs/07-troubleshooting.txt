@@ -1,0 +1,106 @@
+$ kubectl describe pod order-service-6f5c7bb88c-b4j9f -n lab8
+Name:             order-service-6f5c7bb88c-b4j9f
+Namespace:        lab8
+Priority:         0
+Service Account:  default
+Node:             docker-desktop/192.168.65.3
+Start Time:       Tue, 29 Sep 2026 09:40:15 +0530
+Labels:           app=order-service
+                  part-of=lab8
+                  pod-template-hash=6f5c7bb88c
+Annotations:      prometheus.io/path: /metrics
+                  prometheus.io/port: 3003
+                  prometheus.io/scrape: true
+Status:           Running
+IP:               10.1.0.7
+IPs:
+  IP:           10.1.0.7
+Controlled By:  ReplicaSet/order-service-6f5c7bb88c
+Containers:
+  order-service:
+    Container ID:   docker://06134258c873dd5bd870606150db5ddfeff0981fc20c6f59d3cc36bded5bc993
+    Image:          order-service:v2
+    Image ID:       docker-pullable://order-service@sha256:0b8d48750f0998a0e99626add83d5531607c0a01c41ccebb60cd070b3a585392
+    Port:           3003/TCP (http)
+    Host Port:      0/TCP (http)
+    State:          Running
+      Started:      Tue, 29 Sep 2026 09:40:16 +0530
+    Ready:          True
+    Restart Count:  0
+    Limits:
+      cpu:     500m
+      memory:  256Mi
+    Requests:
+      cpu:      50m
+      memory:   96Mi
+    Liveness:   tcp-socket :http delay=30s timeout=1s period=15s #success=1 #failure=3
+    Readiness:  http-get http://:http/health delay=5s timeout=1s period=5s #success=1 #failure=3
+    Environment:
+      PORT:                   <set to the key 'ORDER_SERVICE_PORT' of config map 'lab8-config'>     Optional: false
+      MONGO_URI:              <set to the key 'ORDER_MONGO_URI' in secret 'lab8-mongo'>             Optional: false
+      USER_SERVICE_URL:       <set to the key 'USER_SERVICE_URL' of config map 'lab8-config'>       Optional: false
+      PRODUCT_SERVICE_URL:    <set to the key 'PRODUCT_SERVICE_URL' of config map 'lab8-config'>    Optional: false
+      DEPENDENCY_TIMEOUT_MS:  <set to the key 'DEPENDENCY_TIMEOUT_MS' of config map 'lab8-config'>  Optional: false
+      DEPENDENCY_RETRIES:     <set to the key 'DEPENDENCY_RETRIES' of config map 'lab8-config'>     Optional: false
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-h8khs (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True 
+  Initialized                 True 
+  Ready                       True 
+  ContainersReady             True 
+  PodScheduled                True 
+Volumes:
+  kube-api-access-h8khs:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    Optional:                false
+    DownwardAPI:             true
+QoS Class:                   Burstable
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type     Reason     Age                From               Message
+  ----     ------     ----               ----               -------
+  Normal   Scheduled  100s               default-scheduler  Successfully assigned lab8/order-service-6f5c7bb88c-b4j9f to docker-desktop
+  Normal   Pulled     99s                kubelet            spec.containers{order-service}: Container image "order-service:v2" already present on machine and can be accessed by the pod
+  Normal   Created    99s                kubelet            spec.containers{order-service}: Container created
+  Normal   Started    99s                kubelet            spec.containers{order-service}: Container started
+  Warning  Unhealthy  87s (x2 over 92s)  kubelet            spec.containers{order-service}: Readiness probe failed: Get "http://10.1.0.7:3003/health": dial tcp 10.1.0.7:3003: connect: connection refused
+
+$ kubectl logs order-service-6f5c7bb88c-b4j9f -n lab8 --tail=15
+[order-service] -> GET http://user-service:3001/users/6abb3a54b2379149c46897b4 : 200
+[order-service] -> GET http://product-service:3002/products/6abb3a55e623835b602d60e6 : 200
+[order-service] GET /orders/6abb3a57f08115fc7a740a04?expand=true -> 200
+[order-service] -> GET http://user-service:3001/users/64b000000000000000000000 : 404
+[order-service] POST /orders -> 404
+[order-service] GET /health -> 200
+[order-service] GET /health -> 200
+[order-service] GET /health -> 200
+[order-service] GET /health -> 200
+[order-service] GET /health -> 200
+[order-service] GET /health -> 200
+[order-service] GET /health -> 200
+[order-service] GET /health -> 200
+[order-service] GET /health -> 200
+[order-service] GET /health -> 200
+
+$ kubectl get endpointslices -n lab8
+NAME                    ADDRESSTYPE   PORTS   ENDPOINTS                      AGE
+api-gateway-5mkqg       IPv4          8080    10.1.0.6                       100s
+order-service-g2zmk     IPv4          3003    10.1.0.7                       100s
+product-service-shlzw   IPv4          3002    10.1.0.8                       100s
+user-service-4g5lx      IPv4          3001    10.1.0.9,10.1.0.11,10.1.0.12   100s
+
+# Readiness in action: the api-gateway Service only lists Ready Pods
+$ kubectl get pods -n lab8 -o custom-columns=NAME:.metadata.name,READY:.status.containerStatuses[0].ready,RESTARTS:.status.containerStatuses[0].restartCount
+NAME                              READY   RESTARTS
+api-gateway-779cc9764b-wwwwl      true    0
+order-service-6f5c7bb88c-b4j9f    true    0
+product-service-6475b4684-md4jw   true    0
+user-service-64f5c9bcf8-mb2cj     true    0
+user-service-64f5c9bcf8-n6b9f     true    0
+user-service-64f5c9bcf8-n6ctl     true    0

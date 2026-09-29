@@ -1,0 +1,18 @@
+$ curl http://localhost:9090/api/v1/targets   (kubectl port-forward -n lab8 svc/prometheus 9090:9090)
+  lab8-pods  user-service     user-service-64f5c9bcf8-mb2cj    http://10.1.0.11:3001/metrics      up
+  lab8-pods  user-service     user-service-64f5c9bcf8-n6b9f    http://10.1.0.9:3001/metrics       up
+  lab8-pods  user-service     user-service-64f5c9bcf8-n6ctl    http://10.1.0.12:3001/metrics      up
+  lab8-pods  api-gateway      api-gateway-779cc9764b-wwwwl     http://10.1.0.6:8080/metrics       up
+  lab8-pods  order-service    order-service-6f5c7bb88c-b4j9f   http://10.1.0.7:3003/metrics       up
+  lab8-pods  product-service  product-service-6475b4684-md4jw  http://10.1.0.8:3002/metrics       up
+  prometheus -                -                                http://localhost:9090/metrics      up
+
+$ promql: up
+  {app="product-service", instance="10.1.0.8:3002", job="lab8-pods", namespace="lab8", pod="product-service-6475b4684-md4jw"}  1.000
+  {app="user-service", instance="10.1.0.12:3001", job="lab8-pods", namespace="lab8", pod="user-service-64f5c9bcf8-n6ctl"}  1.000
+  {app="user-service", instance="10.1.0.9:3001", job="lab8-pods", namespace="lab8", pod="user-service-64f5c9bcf8-n6b9f"}  1.000
+  {app="api-gateway", instance="10.1.0.6:8080", job="lab8-pods", namespace="lab8", pod="api-gateway-779cc9764b-wwwwl"}  1.000
+  {app="user-service", instance="10.1.0.11:3001", job="lab8-pods", namespace="lab8", pod="user-service-64f5c9bcf8-mb2cj"}  1.000
+  {instance="localhost:9090", job="prometheus"}  1.000
+  {app="order-service", instance="10.1.0.7:3003", job="lab8-pods", namespace="lab8", pod="order-service-6f5c7bb88c-b4j9f"}  1.000
+

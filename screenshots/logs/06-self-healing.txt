@@ -1,0 +1,37 @@
+$ kubectl get pods -n lab8
+NAME                              READY   STATUS    RESTARTS   AGE
+api-gateway-779cc9764b-wwwwl      1/1     Running   0          76s
+order-service-6f5c7bb88c-b4j9f    1/1     Running   0          76s
+product-service-6475b4684-md4jw   1/1     Running   0          76s
+user-service-64f5c9bcf8-fkn62     1/1     Running   0          17s
+user-service-64f5c9bcf8-mb2cj     1/1     Running   0          17s
+user-service-64f5c9bcf8-n6b9f     1/1     Running   0          76s
+
+$ kubectl delete pod user-service-64f5c9bcf8-fkn62 -n lab8
+pod "user-service-64f5c9bcf8-fkn62" deleted from lab8 namespace
+
+$ kubectl get pods -n lab8 -l app=user-service   (immediately after delete)
+NAME                            READY   STATUS    RESTARTS   AGE
+user-service-64f5c9bcf8-fkn62   0/1     Error     0          18s
+user-service-64f5c9bcf8-mb2cj   1/1     Running   0          18s
+user-service-64f5c9bcf8-n6b9f   1/1     Running   0          77s
+user-service-64f5c9bcf8-n6ctl   0/1     Running   0          1s
+
+$ kubectl get pods -n lab8 -l app=user-service   (~12s later)
+NAME                            READY   STATUS    RESTARTS   AGE
+user-service-64f5c9bcf8-mb2cj   1/1     Running   0          31s
+user-service-64f5c9bcf8-n6b9f   1/1     Running   0          90s
+user-service-64f5c9bcf8-n6ctl   1/1     Running   0          14s
+
+$ kubectl get deployment user-service -n lab8
+NAME           READY   UP-TO-DATE   AVAILABLE   AGE
+user-service   3/3     3            3           90s
+
+$ kubectl get events -n lab8 --field-selector involvedObject.kind=ReplicaSet --sort-by=.lastTimestamp | tail -4
+90s         Normal   SuccessfulCreate   replicaset/user-service-64f5c9bcf8     Created pod: user-service-64f5c9bcf8-n6b9f
+31s         Normal   SuccessfulCreate   replicaset/user-service-64f5c9bcf8     Created pod: user-service-64f5c9bcf8-fkn62
+31s         Normal   SuccessfulCreate   replicaset/user-service-64f5c9bcf8     Created pod: user-service-64f5c9bcf8-mb2cj
+14s         Normal   SuccessfulCreate   replicaset/user-service-64f5c9bcf8     Created pod: user-service-64f5c9bcf8-n6ctl
+
+$ curl http://localhost:30080/users  (service kept answering)
+200

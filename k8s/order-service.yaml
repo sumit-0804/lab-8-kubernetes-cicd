@@ -1,0 +1,16 @@
+# Internal only (ClusterIP). The gateway reaches it as http://order-service:3003.
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-service
+  labels:
+    app: order-service
+    part-of: lab8
+spec:
+  type: ClusterIP
+  selector:
+    app: order-service
+  ports:
+    - name: http
+      port: 3003
+      targetPort: http

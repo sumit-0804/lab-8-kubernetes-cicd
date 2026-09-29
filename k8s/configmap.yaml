@@ -1,0 +1,21 @@
+# Non-sensitive configuration shared by all four Deployments.
+# The service registry uses Kubernetes Service names (cluster DNS), never Pod IPs.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: lab8-config
+  labels:
+    part-of: lab8
+data:
+  GATEWAY_PORT: "8080"
+  USER_SERVICE_PORT: "3001"
+  PRODUCT_SERVICE_PORT: "3002"
+  ORDER_SERVICE_PORT: "3003"
+
+  USER_SERVICE_URL: "http://user-service:3001"
+  PRODUCT_SERVICE_URL: "http://product-service:3002"
+  ORDER_SERVICE_URL: "http://order-service:3003"
+
+  PROXY_TIMEOUT_MS: "10000"
+  DEPENDENCY_TIMEOUT_MS: "3000"
+  DEPENDENCY_RETRIES: "1"

@@ -1,0 +1,27 @@
+$ kubectl scale deployment product-service --replicas=0 -n lab8
+deployment.apps/product-service scaled
+
+$ curl -i http://localhost:30080/products
+HTTP/1.1 503 Service Unavailable
+Content-Type: application/json; charset=utf-8
+Content-Length: 198
+ETag: W/"c6-0NEwFmtJ2iUFCdx7ur8CxxTgLss"
+
+{"status":503,"service":"api-gateway","error":"Service Unavailable","message":"product-service is not reachable right now, please try again later","target":"product-service","reason":"ECONNREFUSED"}
+
+
+$ for i in 1..30: curl http://localhost:30080/products
+503 503 503 503 503 503 503 503 503 503 503 503 503 503 503 503 503 503 503 503 503 503 503 503 503 503 503 503 503 503 
+
+$ kubectl logs deployment/api-gateway -n lab8 | grep product-service | tail -3
+[api-gateway] GET /products -> product-service (http://product-service:3002) 503 1ms
+[api-gateway] GET /products -> product-service failed: ECONNREFUSED
+[api-gateway] GET /products -> product-service (http://product-service:3002) 503 1020ms
+
+$ kubectl scale deployment product-service --replicas=1 -n lab8
+deployment.apps/product-service scaled
+Waiting for deployment "product-service" rollout to finish: 0 of 1 updated replicas are available...
+deployment "product-service" successfully rolled out
+
+$ curl http://localhost:30080/products
+200

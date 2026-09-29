@@ -1,0 +1,184 @@
+$ curl http://localhost:30080/health
+{"status":"ok","service":"api-gateway","uptimeSeconds":34,"routes":[{"prefix":"/users","service":"user-service"},{"prefix":"/products","service":"product-service"},{"prefix":"/orders","service":"order-service"}]}
+
+$ curl http://localhost:30080/health/services   (gateway -> Kubernetes Service names)
+{"service":"api-gateway","services":[{"service":"user-service","reachable":true,"status":200,"health":{"status":"ok","service":"user-service","port":3001,"db":"connected"}},{"service":"product-service","reachable":true,"status":200,"health":{"status":"ok","service":"product-service","port":3002,"db":"connected"}},{"service":"order-service","reachable":true,"status":200,"health":{"status":"ok","service":"order-service","port":3003,"db":"connected","dependencies":{"userService":"http://user-service:3001","productService":"http://product-service:3002"}}}]}
+
+$ newman run (Lab8 - Kubernetes environment, baseUrl http://localhost:30080)
+newman
+
+API Gateway - Lab 7
+
+Folder 1. Gateway
+Sub-folder 01 GET /health (gateway itself)
+  GET http://localhost:30080/health [200 OK, 425B, 21ms]
+  Pass  200 OK
+  Pass  answered by the gateway, not proxied
+  Pass  three routes registered
+
+Sub-folder 02 GET /health/services (registry check)
+  GET http://localhost:30080/health/services [200 OK, 773B, 9ms]
+  Pass  200 OK - every registered service answered
+  Pass  checks all three services
+  Pass  each service has a connected database
+
+Sub-folder 03 GET /unknown -> 404 from gateway
+  GET http://localhost:30080/unknown [404 Not Found, 315B, 7ms]
+  Pass  404 Not Found
+  Pass  answered by the gateway
+
+Folder 2. Users via gateway
+Sub-folder 04 GET /users
+  GET http://localhost:30080/users [200 OK, 1.02kB, 85ms]
+  Pass  200 OK
+  Pass  body is an array
+
+Sub-folder 05 POST /users
+  POST http://localhost:30080/users [201 Created, 433B, 86ms]
+  Pass  201 Created
+  Pass  Location header passed through the gateway
+
+Sub-folder 06 GET /users/{id}
+  GET http://localhost:30080/users/6abb3a54b2379149c46897b4 [200 OK, 385B, 75ms]
+  Pass  200 OK
+  Pass  same record
+
+Sub-folder 07 PUT /users/{id}
+  PUT http://localhost:30080/users/6abb3a54b2379149c46897b4 [200 OK, 395B, 288ms]
+  Pass  200 OK
+  Pass  semester replaced
+
+Sub-folder 08 GET /users/999 (invalid id -> 404)
+  GET http://localhost:30080/users/999 [404 Not Found, 350B, 8ms]
+  Pass  404 Not Found
+  Pass  answered by user-service through the gateway
+
+Folder 3. Products via gateway
+Sub-folder 09 GET /products
+  GET http://localhost:30080/products [200 OK, 902B, 75ms]
+  Pass  200 OK
+  Pass  body is an array
+
+Sub-folder 10 POST /products
+  POST http://localhost:30080/products [201 Created, 415B, 67ms]
+  Pass  201 Created
+
+Sub-folder 11 GET /products/{id}
+  GET http://localhost:30080/products/6abb3a55e623835b602d60e6 [200 OK, 364B, 88ms]
+  Pass  200 OK
+  Pass  same record
+
+Sub-folder 12 PUT /products/{id}
+  PUT http://localhost:30080/products/6abb3a55e623835b602d60e6 [200 OK, 371B, 119ms]
+  Pass  200 OK
+  Pass  price replaced
+
+Sub-folder 13 GET /products/999 (invalid id -> 404)
+  GET http://localhost:30080/products/999 [404 Not Found, 356B, 114ms]
+  Pass  404 Not Found
+  Pass  answered by product-service through the gateway
+
+Folder 4. Orders via gateway
+Sub-folder 14 POST /orders (gateway -> Order -> User + Product)
+  POST http://localhost:30080/orders [201 Created, 673B, 528ms]
+  Pass  201 Created
+  Pass  Order -> User call succeeded
+  Pass  Order -> Product call succeeded
+  Pass  price came from product-service
+
+Sub-folder 15 GET /orders
+  GET http://localhost:30080/orders [200 OK, 4.08kB, 35ms]
+  Pass  200 OK
+  Pass  contains the new order
+
+Sub-folder 16 GET /orders/{id}
+  GET http://localhost:30080/orders/6abb3a57f08115fc7a740a04 [200 OK, 624B, 37ms]
+  Pass  200 OK
+  Pass  same order
+
+Sub-folder 17 GET /orders/{id}?expand=true
+  GET http://localhost:30080/orders/6abb3a57f08115fc7a740a04?expand=true [200 OK, 929B, 251ms]
+  Pass  200 OK
+  Pass  user fetched live from user-service
+  Pass  product fetched live from product-service
+
+Sub-folder 18 GET /products/{id} (stock reduced by the order)
+  GET http://localhost:30080/products/6abb3a55e623835b602d60e6 [200 OK, 371B, 75ms]
+  Pass  200 OK
+  Pass  stock reserved through the API (expected 28)
+
+Sub-folder 19 POST /orders with unknown userId -> 404
+  POST http://localhost:30080/orders [404 Not Found, 451B, 74ms]
+  Pass  404 Not Found
+  Pass  answered by order-service through the gateway
+
+Folder 5. Deletes via gateway
+Sub-folder 20 POST /users (temporary)
+  POST http://localhost:30080/users [201 Created, 431B, 64ms]
+  Pass  201 Created
+
+Sub-folder 21 DELETE /users/{id}
+  DELETE http://localhost:30080/users/6abb3a58b2379149c46897bc [204 No Content, 138B, 68ms]
+  Pass  204 No Content
+
+Sub-folder 22 GET deleted user -> 404
+  GET http://localhost:30080/users/6abb3a58b2379149c46897bc [404 Not Found, 371B, 62ms]
+  Pass  404 Not Found
+
+Sub-folder 23 POST /products (temporary)
+  POST http://localhost:30080/products [201 Created, 406B, 73ms]
+  Pass  201 Created
+
+Sub-folder 24 DELETE /products/{id}
+  DELETE http://localhost:30080/products/6abb3a58e623835b602d60f0 [204 No Content, 138B, 109ms]
+  Pass  204 No Content
+
+--------------------------------------------------------------------
+|                         |           executed |            failed |
+--------------------------+--------------------+--------------------
+|              iterations |                  1 |                 0 |
+--------------------------+--------------------+--------------------
+|                requests |                 24 |                 0 |
+--------------------------+--------------------+--------------------
+|            test-scripts |                 24 |                 0 |
+--------------------------+--------------------+--------------------
+|      prerequest-scripts |                 15 |                 0 |
+--------------------------+--------------------+--------------------
+|              assertions |                 47 |                 0 |
+--------------------------------------------------------------------
+| total run duration: 4.4s                                         |
+--------------------------------------------------------------------
+| total data received: 9.35kB (approx)                             |
+--------------------------------------------------------------------
+| average response time: 100ms [min: 7ms, max: 528ms, s.d.: 110ms] |
+--------------------------------------------------------------------
+
+$ kubectl logs deployment/api-gateway -n lab8 --tail=12   (routing table + targets are Service names)
+
+> api-gateway@1.0.0 start
+> node server.js
+
+[api-gateway] GET /orders/6abb3a57f08115fc7a740a04?expand=true -> order-service (http://order-service:3003) 200 244ms
+[api-gateway] GET /products/6abb3a55e623835b602d60e6 -> product-service (http://product-service:3002) 200 71ms
+[api-gateway] POST /orders -> order-service (http://order-service:3003) 404 69ms
+[api-gateway] POST /users -> user-service (http://user-service:3001) 201 59ms
+[api-gateway] DELETE /users/6abb3a58b2379149c46897bc -> user-service (http://user-service:3001) 204 64ms
+[api-gateway] GET /users/6abb3a58b2379149c46897bc -> user-service (http://user-service:3001) 404 58ms
+[api-gateway] POST /products -> product-service (http://product-service:3002) 201 69ms
+[api-gateway] DELETE /products/6abb3a58e623835b602d60f0 -> product-service (http://product-service:3002) 204 104ms
+
+$ kubectl logs deployment/order-service -n lab8 | grep "order-service] ->"   (Order -> User/Product via Service DNS)
+[order-service] -> GET http://user-service:3001/users/6abb3a54b2379149c46897b4 : 200
+[order-service] -> GET http://product-service:3002/products/6abb3a55e623835b602d60e6 : 200
+[order-service] -> PATCH http://product-service:3002/products/6abb3a55e623835b602d60e6/stock : 200
+[order-service] -> GET http://user-service:3001/users/6abb3a54b2379149c46897b4 : 200
+[order-service] -> GET http://product-service:3002/products/6abb3a55e623835b602d60e6 : 200
+[order-service] -> GET http://user-service:3001/users/64b000000000000000000000 : 404
+
+$ kubectl get endpoints -n lab8
+Warning: v1 Endpoints is deprecated in v1.33+; use discovery.k8s.io/v1 EndpointSlice
+NAME              ENDPOINTS       AGE
+api-gateway       10.1.0.6:8080   50s
+order-service     10.1.0.7:3003   50s
+product-service   10.1.0.8:3002   50s
+user-service      10.1.0.9:3001   50s
