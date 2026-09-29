@@ -279,7 +279,7 @@ Repository: **https://github.com/sumit-0804/lab-8-kubernetes-cicd**
 | Triggers | `push`, `pull_request` |
 | Runner | `ubuntu-latest` |
 | Matrix | `api-gateway`, `user-service`, `product-service`, `order-service` (`fail-fast: false`, so every service reports) |
-| Steps | `actions/checkout@v4` → `actions/setup-node@v4` (Node 20, npm cache per service) → `npm ci` → `npm test` → `docker build -t <service>:${{ github.sha }} .` |
+| Steps | `actions/checkout@v7` → `actions/setup-node@v7` (Node 20, npm cache per service) → `npm ci` → `npm test` → `docker build -t <service>:${{ github.sha }} .` |
 
 What the tests cover (no database or network needed, so CI is deterministic):
 
@@ -292,7 +292,12 @@ What the tests cover (no database or network needed, so CI is deterministic):
 
 Run locally: `cd <service> && npm ci && npm test`.
 
-CI runs: see section 8 (evidence).
+### CI runs
+
+| Run | Trigger | Result |
+| --- | ------- | ------ |
+| [#1](https://github.com/sumit-0804/lab-8-kubernetes-cicd/actions/runs/36521278641) | first push (`e3658fa`) | 4/4 jobs passed (~20 s each). Log: api-gateway `# tests 7 # pass 7 # fail 0`, `naming to docker.io/library/api-gateway:e3658fa…` |
+| #2 | small change: `actions/checkout` and `actions/setup-node` upgraded `v4` → `v7`, because run #1 warned that the v4 actions use the deprecated Node 20 runtime | see [`logs/12-github-actions.txt`](screenshots/logs/12-github-actions.txt) |
 
 ---
 
