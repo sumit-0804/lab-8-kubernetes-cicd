@@ -1,0 +1,29 @@
+$ gh run list --workflow CI
+completed	success	Upgrade checkout and setup-node actions to v7	CI	main	push	36521532466	59s	2026-09-29T04:25:05Z
+completed	success	Upgrade checkout and setup-node actions to v7	CI	main	push	36521378035	25s	2026-09-29T04:23:02Z
+completed	success	Add Kubernetes deployment, CI workflow and monitoring	CI	main	push	36521278641	28s	2026-09-29T04:21:40Z
+
+$ gh run view 36521532466
+
+✓ main CI · 36521532466
+Triggered via push about 1 minute ago
+
+JOBS
+✓ product-service in 20s (ID 109255255865)
+✓ order-service in 21s (ID 109255255960)
+✓ api-gateway in 14s (ID 109255256082)
+✓ user-service in 23s (ID 109255256090)
+
+
+$ gh run view 36521532466 --log  (api-gateway job: key lines)
+Checkout ##[group]Run actions/checkout@v7
+Set up Node.js 20 ##[group]Run actions/setup-node@v7
+Install dependencies ##[group]Run npm ci
+Install dependencies added 103 packages, and audited 104 packages in 617ms
+Run tests ##[group]Run npm test
+Run tests # tests 7
+Run tests # pass 7
+Run tests # fail 0
+Build Docker image ##[group]Run docker build -t api-gateway:77d258fc3e7a02af4988bee992b92debb01cbecc .
+Build Docker image #9 1.306 added 103 packages, and audited 104 packages in 1s
+Build Docker image #11 naming to docker.io/library/api-gateway:77d258fc3e7a02af4988bee992b92debb01cbecc done

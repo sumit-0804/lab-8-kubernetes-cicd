@@ -296,8 +296,9 @@ Run locally: `cd <service> && npm ci && npm test`.
 
 | Run | Trigger | Result |
 | --- | ------- | ------ |
-| [#1](https://github.com/sumit-0804/lab-8-kubernetes-cicd/actions/runs/36521278641) | first push (`e3658fa`) | 4/4 jobs passed (~20 s each). Log: api-gateway `# tests 7 # pass 7 # fail 0`, `naming to docker.io/library/api-gateway:e3658fa…` |
-| #2 | small change: `actions/checkout` and `actions/setup-node` upgraded `v4` → `v7`, because run #1 warned that the v4 actions use the deprecated Node 20 runtime | see [`logs/12-github-actions.txt`](screenshots/logs/12-github-actions.txt) |
+| [#1](https://github.com/sumit-0804/lab-8-kubernetes-cicd/actions/runs/36521278641) | first push | 4/4 jobs passed (~20 s each) |
+| [#2](https://github.com/sumit-0804/lab-8-kubernetes-cicd/actions/runs/36521378035) | small change: `actions/checkout` and `actions/setup-node` upgraded `v4` → `v7`, because run #1 warned that the v4 actions use the deprecated Node 20 runtime | 4/4 jobs passed, warning gone |
+| [#3](https://github.com/sumit-0804/lab-8-kubernetes-cicd/actions/runs/36521532466) | same commits pushed again after a history cleanup | 4/4 jobs passed. Log: api-gateway `# tests 7 # pass 7 # fail 0`, `naming to docker.io/library/api-gateway:77d258f…` ([`logs/12-github-actions.txt`](screenshots/logs/12-github-actions.txt)) |
 
 ---
 
@@ -421,7 +422,7 @@ down. The Prometheus table view of
 | 6 | Scaling to 3 | [`logs/05-scaling.txt`](screenshots/logs/05-scaling.txt) |
 | 7 | Self-healing | [`logs/06-self-healing.txt`](screenshots/logs/06-self-healing.txt) |
 | 8 | Troubleshooting (describe / logs / endpoints) | [`logs/07-troubleshooting.txt`](screenshots/logs/07-troubleshooting.txt) |
-| 9 | GitHub Actions | Actions tab of the repository · screenshot: `screenshots/09-github-actions.png` |
+| 9 | GitHub Actions | [`logs/12-github-actions.txt`](screenshots/logs/12-github-actions.txt), [Actions tab](https://github.com/sumit-0804/lab-8-kubernetes-cicd/actions) · screenshot: `screenshots/09-github-actions.png` |
 | 10 | Prometheus | [`10-prometheus-targets.png`](screenshots/10-prometheus-targets.png), [`11-prometheus-query.png`](screenshots/11-prometheus-query.png), [`logs/08`](screenshots/logs/08-prometheus-targets-and-queries.txt) |
 | 11 | Grafana | [`12-grafana-dashboard.png`](screenshots/12-grafana-dashboard.png) |
 | 12 | Traffic before/after | [`logs/09-traffic-before-after.txt`](screenshots/logs/09-traffic-before-after.txt), [`logs/10`](screenshots/logs/10-newman-traffic-k8s.txt), [`logs/11`](screenshots/logs/11-controlled-failure.txt) |
