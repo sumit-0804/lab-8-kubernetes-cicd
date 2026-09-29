@@ -414,15 +414,15 @@ down. The Prometheus table view of
 
 | No. | Evidence | File |
 | --- | -------- | ---- |
-| 1 | Lab 7 baseline | [`logs/01-lab7-baseline.txt`](screenshots/logs/01-lab7-baseline.txt) · Postman screenshot: `screenshots/01-postman-lab7-baseline.png` |
+| 1 | Lab 7 baseline | [`logs/01-lab7-baseline.txt`](screenshots/logs/01-lab7-baseline.txt) · [`01-postman-lab7-baseline.png`](screenshots/01-postman-lab7-baseline.png) |
 | 2 | Kubernetes environment (context + node) | [`logs/02-k8s-environment.txt`](screenshots/logs/02-k8s-environment.txt) |
 | 3 | Manifests | [`k8s/`](k8s/), [`k8s/monitoring/`](k8s/monitoring/) |
 | 4 | Deployment (Pods, Deployments, Services) | [`logs/03-deploy.txt`](screenshots/logs/03-deploy.txt) |
-| 5 | Gateway test through Kubernetes | [`logs/04-gateway-test.txt`](screenshots/logs/04-gateway-test.txt) · Postman screenshot: `screenshots/04-postman-k8s-gateway.png` |
+| 5 | Gateway test through Kubernetes | [`logs/04-gateway-test.txt`](screenshots/logs/04-gateway-test.txt) · [`04-postman-k8s-gateway.png`](screenshots/04-postman-k8s-gateway.png) |
 | 6 | Scaling to 3 | [`logs/05-scaling.txt`](screenshots/logs/05-scaling.txt) |
 | 7 | Self-healing | [`logs/06-self-healing.txt`](screenshots/logs/06-self-healing.txt) |
 | 8 | Troubleshooting (describe / logs / endpoints) | [`logs/07-troubleshooting.txt`](screenshots/logs/07-troubleshooting.txt) |
-| 9 | GitHub Actions | [`logs/12-github-actions.txt`](screenshots/logs/12-github-actions.txt), [Actions tab](https://github.com/sumit-0804/lab-8-kubernetes-cicd/actions) · screenshot: `screenshots/09-github-actions.png` |
+| 9 | GitHub Actions | [`logs/12-github-actions.txt`](screenshots/logs/12-github-actions.txt), [Actions tab](https://github.com/sumit-0804/lab-8-kubernetes-cicd/actions) · [`09-github-actions.png`](screenshots/09-github-actions.png) |
 | 10 | Prometheus | [`10-prometheus-targets.png`](screenshots/10-prometheus-targets.png), [`11-prometheus-query.png`](screenshots/11-prometheus-query.png), [`logs/08`](screenshots/logs/08-prometheus-targets-and-queries.txt) |
 | 11 | Grafana | [`12-grafana-dashboard.png`](screenshots/12-grafana-dashboard.png) |
 | 12 | Traffic before/after | [`logs/09-traffic-before-after.txt`](screenshots/logs/09-traffic-before-after.txt), [`logs/10`](screenshots/logs/10-newman-traffic-k8s.txt), [`logs/11`](screenshots/logs/11-controlled-failure.txt) |
@@ -492,7 +492,7 @@ kubectl delete namespace lab8
 - [x] Gateway/User/Product/Order Deployments and Services created
 - [x] ConfigMap/Secret used appropriately
 - [x] Application deployed and verified
-- [x] Gateway tested (newman; Postman screenshot to add)
+- [x] Gateway tested from Postman
 - [x] User Service scaled to 3 replicas
 - [x] Self-healing demonstrated
 - [x] Basic GitHub Actions CI passed
@@ -500,4 +500,4 @@ kubectl delete namespace lab8
 - [x] Grafana dashboard created
 - [x] API traffic generated and observed
 - [x] README updated
-- [ ] Postman and GitHub Actions screenshots added (`01-`, `04-`, `09-` in `screenshots/`)
+- [x] All required screenshots/evidence collected
