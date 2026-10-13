@@ -1,0 +1,28 @@
+﻿$ kubectl describe deployment <name> -n lab8 | grep -E "StrategyType|RollingUpdateStrategy|Liveness|Readiness"
+--- api-gateway
+StrategyType:           RollingUpdate
+RollingUpdateStrategy:  0 max unavailable, 1 max surge
+    Liveness:   http-get http://:http/health delay=10s timeout=1s period=15s #success=1 #failure=3
+    Readiness:  http-get http://:http/health delay=3s timeout=1s period=5s #success=1 #failure=3
+--- user-service
+StrategyType:           RollingUpdate
+RollingUpdateStrategy:  0 max unavailable, 1 max surge
+    Liveness:   tcp-socket :http delay=30s timeout=1s period=15s #success=1 #failure=3
+    Readiness:  http-get http://:http/health delay=5s timeout=1s period=5s #success=1 #failure=3
+--- product-service
+StrategyType:           RollingUpdate
+RollingUpdateStrategy:  0 max unavailable, 1 max surge
+    Liveness:   tcp-socket :http delay=30s timeout=1s period=15s #success=1 #failure=3
+    Readiness:  http-get http://:http/health delay=5s timeout=1s period=5s #success=1 #failure=3
+--- order-service
+StrategyType:           RollingUpdate
+RollingUpdateStrategy:  0 max unavailable, 1 max surge
+    Liveness:   tcp-socket :http delay=30s timeout=1s period=15s #success=1 #failure=3
+    Readiness:  http-get http://:http/health delay=5s timeout=1s period=5s #success=1 #failure=3
+
+$ kubectl get pods -n lab8
+NAME                              READY   STATUS    RESTARTS   AGE
+api-gateway-779cc9764b-5wzxw      1/1     Running   0          51s
+order-service-6f5c7bb88c-gx2fg    1/1     Running   0          51s
+product-service-6475b4684-2c8qw   1/1     Running   0          51s
+user-service-64f5c9bcf8-jf6kj     1/1     Running   0          51s

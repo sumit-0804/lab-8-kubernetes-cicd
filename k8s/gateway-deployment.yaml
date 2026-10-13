@@ -7,6 +7,10 @@ metadata:
     part-of: lab8
 spec:
   replicas: 1
+  # Rolling update: the new Pod must pass its readiness probe before the old one is removed.
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: { maxSurge: 1, maxUnavailable: 0 }
   selector:
     matchLabels:
       app: api-gateway
