@@ -376,6 +376,24 @@ probe, the old Pod keeps serving until the new one is Ready.
 The manifests in `k8s/` keep the local `:v2` images for the first deploy.
 `kubectl set image` records each new version in the rollout history.
 
+**Result** ([`logs/14-rollout.txt`](screenshots/logs/14-rollout.txt)): all four
+Deployments were moved from `:v2` to the images built by the CI/CD run for
+commit `7b30d24`:
+
+```
+api-gateway       1   ghcr.io/sumit-0804/lab-8-kubernetes-cicd/api-gateway:7b30d24c4305efeee1b6c1723c6ecd853135f0d7
+order-service     1   ghcr.io/sumit-0804/lab-8-kubernetes-cicd/order-service:7b30d24c…
+product-service   1   ghcr.io/sumit-0804/lab-8-kubernetes-cicd/product-service:7b30d24c…
+user-service      1   ghcr.io/sumit-0804/lab-8-kubernetes-cicd/user-service:7b30d24c…
+
+deployment "user-service" successfully rolled out      (revision 1 -> 2)
+```
+
+The Pods pulled from GHCR (`imageID: ghcr.io/…/user-service@sha256:50fb0ed2…`).
+`/health/services` showed all three services reachable with `db: connected`.
+The Postman collection through `localhost:30080` gave **24 requests, 47
+assertions, 0 failed**, the same as before the rollout.
+
 What the tests cover (no database or network needed, so CI is deterministic):
 
 | Service | Test file | Checks |
@@ -389,9 +407,14 @@ Run locally: `cd <service> && npm ci && npm test`.
 
 ### 5.3 Workflow runs
 
-Runs #1–#3 used the earlier CI-only workflow (no registry push). The CI/CD
-version above adds the GHCR push. Its first run, the pushed image and the
-rollout are the evidence still to add (marked ⬜ in section 8).
+Runs #1–#3 used the earlier CI-only workflow (no registry push). Run #4 is
+the first CI/CD run:
+
+| Run | Trigger | Result |
+| --- | ------- | ------ |
+| [#4](https://github.com/sumit-0804/lab-8-kubernetes-cicd/actions/runs/38345186618) | push of `7b30d24` (CI/CD workflow) | 4/4 jobs passed, including "Push image" to GHCR; rolled out in 5.2 |
+
+Earlier runs:
 
 | Run | Trigger | Result |
 | --- | ------- | ------ |
@@ -525,7 +548,7 @@ down. The Prometheus table view of
 | Scaling and self-healing | `logs/05-scaling.txt`, `logs/06-self-healing.txt` |
 | Health / readiness probes, rolling-update strategy | `logs/13-probes.txt` |
 | Successful GitHub Actions CI/CD run | section 5 / Actions tab |
-| Versioned image in the registry, rollout to it | section 5.1 / 5.2 (⬜ evidence 14–15) |
+| Versioned image in the registry, rollout to it | section 5.1 / 5.2, `logs/14-rollout.txt` |
 | Prometheus targets and queries | `10-prometheus-targets.png`, `11-prometheus-query.png`, `logs/08`, `logs/09` |
 | Grafana responding to traffic | `12-grafana-dashboard.png` |
 
@@ -559,9 +582,9 @@ Client / Postman ─► api-gateway (NodePort 30080) ─► user / product / ord
 | 12 | Traffic before/after | [`logs/09-traffic-before-after.txt`](screenshots/logs/09-traffic-before-after.txt), [`logs/10`](screenshots/logs/10-newman-traffic-k8s.txt), [`logs/11`](screenshots/logs/11-controlled-failure.txt) |
 | 13 | Architecture | [`13-architecture.png`](screenshots/13-architecture.png) |
 | 14 | Probes + rolling-update strategy, Pods Ready | [`logs/13-probes.txt`](screenshots/logs/13-probes.txt) |
-| 15 | Versioned image in GHCR | ⬜ `screenshots/14-ghcr-image.png`: Packages page showing `<service>:<sha>` |
-| 16 | CI/CD run with registry push | ⬜ `screenshots/15-github-actions-cicd.png`: run with the "Push image" step green |
-| 17 | Kubernetes rollout to the new image | ⬜ `screenshots/logs/14-rollout.txt`: output of the 5.2 commands |
+| 15 | Versioned image in GHCR | [Packages](https://github.com/sumit-0804?tab=packages) · ⬜ `screenshots/14-ghcr-image.png` |
+| 16 | CI/CD run with registry push | [run #4](https://github.com/sumit-0804/lab-8-kubernetes-cicd/actions/runs/38345186618) · ⬜ `screenshots/15-github-actions-cicd.png` |
+| 17 | Kubernetes rollout to the new image | [`logs/14-rollout.txt`](screenshots/logs/14-rollout.txt) |
 
 Registry naming/tagging: section 5.1. CI/CD stages and rollout procedure:
 sections 5 and 5.2. Probe configuration and expected behaviour: section 4.3.
@@ -638,11 +661,11 @@ kubectl delete namespace lab8
 - [x] User Service scaled to 3 replicas
 - [x] Self-healing demonstrated
 - [x] Health/readiness probes configured, Pods Ready
-- [ ] GitHub Actions CI/CD workflow passed (CI-only runs #1–#3 passed; CI/CD run pending)
+- [x] GitHub Actions CI/CD workflow passed (run #4)
 - [x] Prometheus targets/metrics verified
 - [x] Grafana dashboard created
 - [x] API traffic generated and observed
-- [ ] Versioned Docker image pushed to the selected container registry
-- [ ] Kubernetes rollout to the new image verified
+- [x] Versioned Docker image pushed to the selected container registry
+- [x] Kubernetes rollout to the new image verified
 - [x] README updated
-- [ ] All required screenshots/evidence collected (15–17 in section 8)
+- [ ] All required screenshots/evidence collected (screenshots for 15–16 in section 8)

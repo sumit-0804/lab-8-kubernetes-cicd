@@ -1,0 +1,220 @@
+﻿# Rollout of the CI/CD-built images (commit 7b30d24c4305efeee1b6c1723c6ecd853135f0d7) 
+$ kubectl get deployments -n lab8 -o custom-columns=NAME:.metadata.name,IMAGE:.spec.template.spec.containers[0].image   (before)
+NAME              IMAGE
+api-gateway       api-gateway:v2
+grafana           grafana/grafana:11.4.0
+order-service     order-service:v2
+product-service   product-service:v2
+prometheus        prom/prometheus:v3.1.0
+user-service      user-service:v2
+
+$ kubectl set image deployment/user-service user-service=ghcr.io/sumit-0804/lab-8-kubernetes-cicd/user-service:7b30d24c4305efeee1b6c1723c6ecd853135f0d7 -n lab8
+deployment.apps/user-service image updated
+$ kubectl rollout status deployment/user-service -n lab8
+Waiting for deployment "user-service" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "user-service" rollout to finish: 1 old replicas are pending termination...
+deployment "user-service" successfully rolled out
+
+$ kubectl set image deployment/product-service product-service=ghcr.io/sumit-0804/lab-8-kubernetes-cicd/product-service:7b30d24c4305efeee1b6c1723c6ecd853135f0d7 -n lab8
+deployment.apps/product-service image updated
+$ kubectl rollout status deployment/product-service -n lab8
+Waiting for deployment "product-service" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "product-service" rollout to finish: 1 old replicas are pending termination...
+deployment "product-service" successfully rolled out
+
+$ kubectl set image deployment/order-service order-service=ghcr.io/sumit-0804/lab-8-kubernetes-cicd/order-service:7b30d24c4305efeee1b6c1723c6ecd853135f0d7 -n lab8
+deployment.apps/order-service image updated
+$ kubectl rollout status deployment/order-service -n lab8
+Waiting for deployment "order-service" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "order-service" rollout to finish: 1 old replicas are pending termination...
+deployment "order-service" successfully rolled out
+
+$ kubectl set image deployment/api-gateway api-gateway=ghcr.io/sumit-0804/lab-8-kubernetes-cicd/api-gateway:7b30d24c4305efeee1b6c1723c6ecd853135f0d7 -n lab8
+deployment.apps/api-gateway image updated
+$ kubectl rollout status deployment/api-gateway -n lab8
+Waiting for deployment "api-gateway" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "api-gateway" rollout to finish: 1 old replicas are pending termination...
+deployment "api-gateway" successfully rolled out
+
+# Verification
+$ kubectl get deployments -n lab8 -o custom-columns=NAME:.metadata.name,READY:.status.readyReplicas,IMAGE:.spec.template.spec.containers[0].image   (after)
+NAME              READY    IMAGE
+api-gateway       1        ghcr.io/sumit-0804/lab-8-kubernetes-cicd/api-gateway:7b30d24c4305efeee1b6c1723c6ecd853135f0d7
+grafana           <none>   grafana/grafana:11.4.0
+order-service     1        ghcr.io/sumit-0804/lab-8-kubernetes-cicd/order-service:7b30d24c4305efeee1b6c1723c6ecd853135f0d7
+product-service   1        ghcr.io/sumit-0804/lab-8-kubernetes-cicd/product-service:7b30d24c4305efeee1b6c1723c6ecd853135f0d7
+prometheus        <none>   prom/prometheus:v3.1.0
+user-service      1        ghcr.io/sumit-0804/lab-8-kubernetes-cicd/user-service:7b30d24c4305efeee1b6c1723c6ecd853135f0d7
+
+$ kubectl rollout history deployment/user-service -n lab8
+deployment.apps/user-service 
+REVISION  CHANGE-CAUSE
+1         <none>
+2         <none>
+
+
+$ kubectl get pods -n lab8
+NAME                               READY   STATUS    RESTARTS   AGE
+api-gateway-df785b566-qh9zk        1/1     Running   0          21s
+order-service-5bf5c76cf5-ml4gx     1/1     Running   0          33s
+product-service-57857ffd58-mqnrn   1/1     Running   0          110s
+user-service-bfdc6769b-79ztw       1/1     Running   0          2m4s
+
+$ kubectl get pod -l app=user-service -n lab8 -o jsonpath="{.items[0].status.containerStatuses[0].imageID}"
+docker-pullable://ghcr.io/sumit-0804/lab-8-kubernetes-cicd/user-service@sha256:50fb0ed2dcc5aa5aeeccdcedd7a3f9a92b9c00ea392064298b9cc0a9536bcf06
+
+
+$ curl http://localhost:30080/health/services
+{"service":"api-gateway","services":[{"service":"user-service","reachable":true,"status":200,"health":{"status":"ok","service":"user-service","port":3001,"db":"connected"}},{"service":"product-service","reachable":true,"status":200,"health":{"status":"ok","service":"product-service","port":3002,"db":"connected"}},{"service":"order-service","reachable":true,"status":200,"health":{"status":"ok","service":"order-service","port":3003,"db":"connected","dependencies":{"userService":"http://user-service:3001","productService":"http://product-service:3002"}}}]}
+
+$ curl -i http://localhost:30080/products
+HTTP/1.1 200 OK
+
+$ newman run postman/API-Gateway-Lab7.postman_collection.json -e postman/Lab8-K8s.postman_environment.json --folder 1..5
+newman
+
+API Gateway - Lab 7
+
+Folder 1. Gateway
+Sub-folder 01 GET /health (gateway itself)
+  GET http://localhost:30080/health [200 OK, 425B, 21ms]
+  Pass  200 OK
+  Pass  answered by the gateway, not proxied
+  Pass  three routes registered
+
+Sub-folder 02 GET /health/services (registry check)
+  GET http://localhost:30080/health/services [200 OK, 773B, 8ms]
+  Pass  200 OK - every registered service answered
+  Pass  checks all three services
+  Pass  each service has a connected database
+
+Sub-folder 03 GET /unknown -> 404 from gateway
+  GET http://localhost:30080/unknown [404 Not Found, 315B, 4ms]
+  Pass  404 Not Found
+  Pass  answered by the gateway
+
+Folder 2. Users via gateway
+Sub-folder 04 GET /users
+  GET http://localhost:30080/users [200 OK, 3.21kB, 238ms]
+  Pass  200 OK
+  Pass  body is an array
+
+Sub-folder 05 POST /users
+  POST http://localhost:30080/users [201 Created, 433B, 95ms]
+  Pass  201 Created
+  Pass  Location header passed through the gateway
+
+Sub-folder 06 GET /users/{id}
+  GET http://localhost:30080/users/6acdb0d4a355bbe411a01b64 [200 OK, 385B, 69ms]
+  Pass  200 OK
+  Pass  same record
+
+Sub-folder 07 PUT /users/{id}
+  PUT http://localhost:30080/users/6acdb0d4a355bbe411a01b64 [200 OK, 395B, 135ms]
+  Pass  200 OK
+  Pass  semester replaced
+
+Sub-folder 08 GET /users/999 (invalid id -> 404)
+  GET http://localhost:30080/users/999 [404 Not Found, 350B, 7ms]
+  Pass  404 Not Found
+  Pass  answered by user-service through the gateway
+
+Folder 3. Products via gateway
+Sub-folder 09 GET /products
+  GET http://localhost:30080/products [200 OK, 2.75kB, 115ms]
+  Pass  200 OK
+  Pass  body is an array
+
+Sub-folder 10 POST /products
+  POST http://localhost:30080/products [201 Created, 415B, 61ms]
+  Pass  201 Created
+
+Sub-folder 11 GET /products/{id}
+  GET http://localhost:30080/products/6acdb0d44ffd2c841893a842 [200 OK, 364B, 106ms]
+  Pass  200 OK
+  Pass  same record
+
+Sub-folder 12 PUT /products/{id}
+  PUT http://localhost:30080/products/6acdb0d44ffd2c841893a842 [200 OK, 371B, 71ms]
+  Pass  200 OK
+  Pass  price replaced
+
+Sub-folder 13 GET /products/999 (invalid id -> 404)
+  GET http://localhost:30080/products/999 [404 Not Found, 356B, 8ms]
+  Pass  404 Not Found
+  Pass  answered by product-service through the gateway
+
+Folder 4. Orders via gateway
+Sub-folder 14 POST /orders (gateway -> Order -> User + Product)
+  POST http://localhost:30080/orders [201 Created, 673B, 689ms]
+  Pass  201 Created
+  Pass  Order -> User call succeeded
+  Pass  Order -> Product call succeeded
+  Pass  price came from product-service
+
+Sub-folder 15 GET /orders
+  GET http://localhost:30080/orders [200 OK, 10.61kB, 184ms]
+  Pass  200 OK
+  Pass  contains the new order
+
+Sub-folder 16 GET /orders/{id}
+  GET http://localhost:30080/orders/6acdb0d58b67cff92438f0bc [200 OK, 624B, 56ms]
+  Pass  200 OK
+  Pass  same order
+
+Sub-folder 17 GET /orders/{id}?expand=true
+  GET http://localhost:30080/orders/6acdb0d58b67cff92438f0bc?expand=true [200 OK, 929B, 355ms]
+  Pass  200 OK
+  Pass  user fetched live from user-service
+  Pass  product fetched live from product-service
+
+Sub-folder 18 GET /products/{id} (stock reduced by the order)
+  GET http://localhost:30080/products/6acdb0d44ffd2c841893a842 [200 OK, 371B, 305ms]
+  Pass  200 OK
+  Pass  stock reserved through the API (expected 28)
+
+Sub-folder 19 POST /orders with unknown userId -> 404
+  POST http://localhost:30080/orders [404 Not Found, 451B, 104ms]
+  Pass  404 Not Found
+  Pass  answered by order-service through the gateway
+
+Folder 5. Deletes via gateway
+Sub-folder 20 POST /users (temporary)
+  POST http://localhost:30080/users [201 Created, 431B, 82ms]
+  Pass  201 Created
+
+Sub-folder 21 DELETE /users/{id}
+  DELETE http://localhost:30080/users/6acdb0d7a355bbe411a01b6c [204 No Content, 138B, 184ms]
+  Pass  204 No Content
+
+Sub-folder 22 GET deleted user -> 404
+  GET http://localhost:30080/users/6acdb0d7a355bbe411a01b6c [404 Not Found, 371B, 438ms]
+  Pass  404 Not Found
+
+Sub-folder 23 POST /products (temporary)
+  POST http://localhost:30080/products [201 Created, 406B, 29ms]
+  Pass  201 Created
+
+Sub-folder 24 DELETE /products/{id}
+  DELETE http://localhost:30080/products/6acdb0d84ffd2c841893a84c [204 No Content, 138B, 39ms]
+  Pass  204 No Content
+
+--------------------------------------------------------------------
+|                         |           executed |            failed |
+--------------------------+--------------------+--------------------
+|              iterations |                  1 |                 0 |
+--------------------------+--------------------+--------------------
+|                requests |                 24 |                 0 |
+--------------------------+--------------------+--------------------
+|            test-scripts |                 24 |                 0 |
+--------------------------+--------------------+--------------------
+|      prerequest-scripts |                 15 |                 0 |
+--------------------------+--------------------+--------------------
+|              assertions |                 47 |                 0 |
+--------------------------------------------------------------------
+| total run duration: 5.2s                                         |
+--------------------------------------------------------------------
+| total data received: 19.91kB (approx)                            |
+--------------------------------------------------------------------
+| average response time: 141ms [min: 4ms, max: 689ms, s.d.: 160ms] |
+--------------------------------------------------------------------
