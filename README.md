@@ -407,12 +407,12 @@ Run locally: `cd <service> && npm ci && npm test`.
 
 ### 5.3 Workflow runs
 
-Runs #1–#3 used the earlier CI-only workflow (no registry push). Run #4 is
+Runs #1–#3 below used the earlier CI-only workflow (no registry push). Run #6 is
 the first CI/CD run:
 
 | Run | Trigger | Result |
 | --- | ------- | ------ |
-| [#4](https://github.com/sumit-0804/lab-8-kubernetes-cicd/actions/runs/38345186618) | push of `7b30d24` (CI/CD workflow) | 4/4 jobs passed, including "Push image" to GHCR; rolled out in 5.2 |
+| [#6](https://github.com/sumit-0804/lab-8-kubernetes-cicd/actions/runs/38345186618) | push of `7b30d24` (CI/CD workflow) | 4/4 jobs passed, including "Push image" to GHCR; rolled out in 5.2 |
 
 Earlier runs:
 
@@ -582,8 +582,8 @@ Client / Postman ─► api-gateway (NodePort 30080) ─► user / product / ord
 | 12 | Traffic before/after | [`logs/09-traffic-before-after.txt`](screenshots/logs/09-traffic-before-after.txt), [`logs/10`](screenshots/logs/10-newman-traffic-k8s.txt), [`logs/11`](screenshots/logs/11-controlled-failure.txt) |
 | 13 | Architecture | [`13-architecture.png`](screenshots/13-architecture.png) |
 | 14 | Probes + rolling-update strategy, Pods Ready | [`logs/13-probes.txt`](screenshots/logs/13-probes.txt) |
-| 15 | Versioned image in GHCR | [Packages](https://github.com/sumit-0804?tab=packages) · ⬜ `screenshots/14-ghcr-image.png` |
-| 16 | CI/CD run with registry push | [run #4](https://github.com/sumit-0804/lab-8-kubernetes-cicd/actions/runs/38345186618) · ⬜ `screenshots/15-github-actions-cicd.png` |
+| 15 | Versioned image in GHCR | [Packages](https://github.com/sumit-0804?tab=packages) · [`14-ghcr-image.png`](screenshots/14-ghcr-image.png) |
+| 16 | CI/CD run with registry push | [run #6](https://github.com/sumit-0804/lab-8-kubernetes-cicd/actions/runs/38345186618) · [`15-github-actions-cicd.png`](screenshots/15-github-actions-cicd.png) |
 | 17 | Kubernetes rollout to the new image | [`logs/14-rollout.txt`](screenshots/logs/14-rollout.txt) |
 
 Registry naming/tagging: section 5.1. CI/CD stages and rollout procedure:
@@ -661,11 +661,11 @@ kubectl delete namespace lab8
 - [x] User Service scaled to 3 replicas
 - [x] Self-healing demonstrated
 - [x] Health/readiness probes configured, Pods Ready
-- [x] GitHub Actions CI/CD workflow passed (run #4)
+- [x] GitHub Actions CI/CD workflow passed (run #6)
 - [x] Prometheus targets/metrics verified
 - [x] Grafana dashboard created
 - [x] API traffic generated and observed
 - [x] Versioned Docker image pushed to the selected container registry
 - [x] Kubernetes rollout to the new image verified
 - [x] README updated
-- [ ] All required screenshots/evidence collected (screenshots for 15–16 in section 8)
+- [x] All required screenshots/evidence collected
